@@ -1,0 +1,298 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>line_search2</title><meta name="generator" content="MATLAB 9.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2019-10-11"><meta name="DC.source" content="line_search2.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">LINE_SEARCH2 Introduction</a></li><li><a href="#3">Establishing Parameters</a></li><li><a href="#4">Setting Up Functions</a></li><li><a href="#5">Line Search Algorithm</a></li><li><a href="#6">Printing Results</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> info_matrix = line_search2(method,f,x_initial,param)
+</pre><h2 id="2">LINE_SEARCH2 Introduction</h2><pre>         Displays the first 10 and last points found for the
+         minimization process. Returns all points found.</pre><pre class="language-matlab">method: The method <span class="string">of</span> <span class="string">optimization</span> <span class="string">used</span>, given <span class="string">as</span> <span class="string">a</span> <span class="string">string</span>, with
+        the <span class="string">options</span> <span class="string">of</span> <span class="string">"steepd"</span> <span class="string">for</span> <span class="string">steepest</span> <span class="string">descent</span> <span class="string">method</span>, and
+        <span class="string">"newton"</span> <span class="keyword">for</span> Newton's method.
+</pre><pre class="language-matlab">f:      The <span class="keyword">function</span> to be <span class="string">evaluated</span>, using <span class="string">symbolic</span> <span class="string">variables</span>
+</pre><pre class="language-matlab">x_0:    The initial <span class="string">point</span> <span class="string">to</span> <span class="string">begin</span> <span class="string">the</span> <span class="string">minimization</span> <span class="string">search</span>, given
+        as <span class="string">a</span> <span class="string">vertical</span> <span class="string">vector.</span>
+</pre><pre class="language-matlab">param:  The basic <span class="string">parameters</span>, given <span class="string">in</span> <span class="string">a</span> <span class="string">vector</span> <span class="string">with</span> <span class="string">the</span> <span class="string">format:</span>
+        [alpha_0, c1, tolerance]
+</pre><h2 id="3">Establishing Parameters</h2><pre class="codeinput">    format <span class="string">long</span>
+
+    a_0 = param(1);
+    c1 = param(2);
+    tolerance = param(3);
+
+    x_k = x_initial;
+    info_matrix = zeros(1,6);
+
+    e1 = 1e-6;
+    e2 = 1e-4;
+</pre><h2 id="4">Setting Up Functions</h2><pre class="codeinput">    x                   = sym(<span class="string">'x'</span>, [2,1]);
+    sfun_f(x)           = f;
+    sfun_f_gradient(x)  = gradient(sfun_f);
+    sfun_f_hessian(x)   = hessian(sfun_f);
+
+    f_eval              = matlabFunction(sfun_f, <span class="string">'Vars'</span>, {x});
+    f_grad              = matlabFunction(sfun_f_gradient, <span class="string">'Vars'</span>, {x});
+    f_hess              = matlabFunction(sfun_f_hessian, <span class="string">'Vars'</span>, {x});
+</pre><h2 id="5">Line Search Algorithm</h2><pre class="codeinput">    i    = 1;
+
+    <span class="keyword">while</span> abs(f_eval(x_k)) &gt; tolerance &amp;&amp; norm(f_grad(x_k)) &gt; tolerance
+
+        <span class="comment">% FIND DESCENT DIRECTION</span>
+        <span class="keyword">if</span> method == <span class="string">"steepest descent"</span>
+            p_k = -f_grad(x_k) / norm(f_grad(x_k));
+        <span class="keyword">elseif</span> method == <span class="string">"Newton"</span>
+            p_k = -inv(f_hess(x_k))' * f_grad(x_k);
+        <span class="keyword">end</span>
+
+        <span class="comment">% INITIAL STEP LENGTH STRATEGY #1</span>
+        <span class="keyword">if</span> i&gt;1 &amp;&amp; method == <span class="string">"steepest descent"</span>
+            a_0 = a_2 * f_grad(x_k_old)' * p_k_old / <span class="keyword">...</span>
+                  (f_grad(x_k)' * p_k);
+        <span class="keyword">end</span>
+
+        q_eval = @(a) f_eval(x_k + a * p_k);
+        q_grad = @(a) f_grad(x_k + a * p_k);
+
+        <span class="keyword">while</span> 1
+
+            <span class="comment">% TEST WITH INITIAL GUESS a_0</span>
+            <span class="keyword">if</span> armijo(q_eval, q_grad, p_k, a_0, c1)
+                a_2 = a_0;
+                <span class="keyword">break</span>
+            <span class="keyword">else</span>
+                a_1 = -(1/2) * p_k' * q_grad(0) * a_0^2 / <span class="keyword">...</span>
+                       (q_eval(a_0)-q_eval(0)-p_k'*q_grad(0)*a_0);
+                a_2 = a_1;
+            <span class="keyword">end</span>
+
+            <span class="comment">% REPEAT INTERPOLATION UNTIL ALPHA IS FOUND</span>
+            <span class="keyword">if</span> armijo(q_eval, q_grad, p_k, a_2, c1)
+                <span class="keyword">break</span>
+            <span class="keyword">else</span>
+                tmp = a_2;
+                a_2 = zoom(q_eval, q_grad, p_k, a_0, a_1);
+                a_0 = a_1;
+                a_1 = tmp;
+
+                <span class="comment">% SAFEGUARD</span>
+                <span class="keyword">if</span> abs(a_2 - a_1) &lt; e1 || abs(a_2) &lt; e2
+                    a_2 = a_1 / 2;
+                <span class="keyword">end</span>
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+
+        info_matrix(i,:) = [x_k', f_eval(x_k), p_k', a_2];
+
+        x_k_old = x_k;
+        p_k_old = p_k;
+
+        x_k = x_k + a_2 * p_k;
+        i = i + 1;
+
+    <span class="keyword">end</span>
+</pre><h2 id="6">Printing Results</h2><pre class="codeinput">    disp(i-1 + <span class="string">" iterations using "</span> + method + <span class="string">" method,"</span>)
+    disp(<span class="string">"starting at point ("</span> + x_initial(1) + <span class="string">", "</span> + x_initial(2) + <span class="string">"):"</span>)
+
+    headers = {<span class="string">'x_1'</span>,<span class="string">'x_2'</span>,<span class="string">'f(x_0)'</span>,<span class="string">'p_k1'</span>,<span class="string">'p_k2'</span>,<span class="string">'alpha'</span>};
+    s = <span class="string">'...'</span>;  space = {s, s, s, s, s, s};
+    maxi = min(i-1,10);
+    firsts = num2cell(info_matrix(1:maxi,:));
+    last = num2cell(info_matrix(end,:));
+    disp([headers; firsts; space; last]);
+    fprintf(<span class="string">'\n'</span>)
+
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2018b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function info_matrix = line_search2(method,f,x_initial,param)
+
+    %%% LINE_SEARCH2 Introduction    
+    %           Displays the first 10 and last points found for the
+    %           minimization process. Returns all points found.
+    %
+    %   method: The method of optimization used, given as a string, with
+    %           the options of "steepd" for steepest descent method, and 
+    %           "newton" for Newton's method.
+    %
+    %   f:      The function to be evaluated, using symbolic variables
+    %
+    %   x_0:    The initial point to begin the minimization search, given
+    %           as a vertical vector.
+    %
+    %   param:  The basic parameters, given in a vector with the format:
+    %           [alpha_0, c1, tolerance]
+
+    
+    
+    %%% Establishing Parameters
+    
+    format long
+    
+    a_0 = param(1);
+    c1 = param(2);
+    tolerance = param(3);
+    
+    x_k = x_initial;
+    info_matrix = zeros(1,6); 
+    
+    e1 = 1e-6;
+    e2 = 1e-4;
+    
+    
+    
+    %%% Setting Up Functions
+    
+    x                   = sym('x', [2,1]);
+    sfun_f(x)           = f;
+    sfun_f_gradient(x)  = gradient(sfun_f);
+    sfun_f_hessian(x)   = hessian(sfun_f);
+
+    f_eval              = matlabFunction(sfun_f, 'Vars', {x});
+    f_grad              = matlabFunction(sfun_f_gradient, 'Vars', {x});
+    f_hess              = matlabFunction(sfun_f_hessian, 'Vars', {x});
+    
+    
+    
+    %%% Line Search Algorithm
+  
+    i    = 1;
+   
+    while abs(f_eval(x_k)) > tolerance && norm(f_grad(x_k)) > tolerance
+        
+        % FIND DESCENT DIRECTION
+        if method == "steepest descent"
+            p_k = -f_grad(x_k) / norm(f_grad(x_k));
+        elseif method == "Newton"
+            p_k = -inv(f_hess(x_k))' * f_grad(x_k);
+        end
+        
+        % INITIAL STEP LENGTH STRATEGY #1
+        if i>1 && method == "steepest descent"
+            a_0 = a_2 * f_grad(x_k_old)' * p_k_old / ...
+                  (f_grad(x_k)' * p_k);
+        end
+        
+        q_eval = @(a) f_eval(x_k + a * p_k);  
+        q_grad = @(a) f_grad(x_k + a * p_k);
+        
+        while 1
+            
+            % TEST WITH INITIAL GUESS a_0
+            if armijo(q_eval, q_grad, p_k, a_0, c1)
+                a_2 = a_0;
+                break
+            else
+                a_1 = -(1/2) * p_k' * q_grad(0) * a_0^2 / ...      
+                       (q_eval(a_0)-q_eval(0)-p_k'*q_grad(0)*a_0);
+                a_2 = a_1;
+            end
+        
+            % REPEAT INTERPOLATION UNTIL ALPHA IS FOUND        
+            if armijo(q_eval, q_grad, p_k, a_2, c1)
+                break
+            else
+                tmp = a_2;
+                a_2 = zoom(q_eval, q_grad, p_k, a_0, a_1);
+                a_0 = a_1;
+                a_1 = tmp;  
+                
+                % SAFEGUARD
+                if abs(a_2 - a_1) < e1 || abs(a_2) < e2
+                    a_2 = a_1 / 2;
+                end
+            end
+        end
+        
+
+        info_matrix(i,:) = [x_k', f_eval(x_k), p_k', a_2];
+        
+        x_k_old = x_k;
+        p_k_old = p_k;
+        
+        x_k = x_k + a_2 * p_k;
+        i = i + 1;
+
+    end
+    
+    
+    
+    %%% Printing Results
+
+    disp(i-1 + " iterations using " + method + " method,")
+    disp("starting at point (" + x_initial(1) + ", " + x_initial(2) + "):")    
+
+    headers = {'x_1','x_2','f(x_0)','p_k1','p_k2','alpha'};
+    s = '...';  space = {s, s, s, s, s, s};
+    maxi = min(i-1,10);
+    firsts = num2cell(info_matrix(1:maxi,:)); 
+    last = num2cell(info_matrix(end,:));
+    disp([headers; firsts; space; last]);
+    fprintf('\n')    
+    
+end
+
+##### SOURCE END #####
+--></body></html>
